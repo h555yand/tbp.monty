@@ -23,7 +23,7 @@ channels:
 
 # Note: Remember to update recipe/meta.yaml when updating this file.
 dependencies:
-  - python=3.8
+  - python=3.9
 
   - aihabitat::habitat-sim=0.2.2
   - aihabitat::withbullet
@@ -50,3 +50,11 @@ dependencies:
   - pip
   - pip:
       - -e .[dev]
+      - trimesh
+      - pytest
+      - rtree
+      - hnswlib>=0.7
+      - pyglet<2
+      - manifold3d
+      - pyrender
+      - mujoco==3.3.3

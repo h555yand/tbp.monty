@@ -525,6 +525,9 @@ class EvidenceGoalGenerator(GraphGoalGenerator):
         self.desired_object_distance = desired_object_distance
         self.wait_growth_multiplier = wait_growth_multiplier
 
+        # ═══ NEW: Flag to suppress goal generation during RL navigation ═══
+        self.navigation_active = False
+
     # ======================= Public ==========================
 
     # ------------------- Main Algorithm -----------------------
@@ -542,6 +545,9 @@ class EvidenceGoalGenerator(GraphGoalGenerator):
         # previous hypothesis-testing actions; used to track when these have changed,
         # and therefore a possible reason to initiate another hypothesis-testing action.
         # TODO M consider moving to buffer.
+
+        # ═══ NEW: Reset navigation flag ═══
+        self.navigation_active = False
 
     # ======================= Private ==========================
 
@@ -877,6 +883,19 @@ class EvidenceGoalGenerator(GraphGoalGenerator):
             Whether there's a good chance to discriminate between conflicting object IDs
             or poses.
         """
+        
+        # ═══ NEW: Don't generate goals during RL navigation ═══
+        # During RL navigation, the agent is moving toward a previously set goal.
+        # Generating new goals would be wasteful — they'd be ignored by the
+        # motor system, but still logged as "attempted" with false achieved status.
+        # Evidence updates from directed exploration still happen normally.
+        if self.navigation_active:
+            return False
+
+        num_elapsed_steps = self._get_num_steps_post_output_goal_generated()
+
+        self.focus_on_pose = False  # Default
+
         num_elapsed_steps = self._get_num_steps_post_output_goal_generated()
 
         self.focus_on_pose = False  # Default

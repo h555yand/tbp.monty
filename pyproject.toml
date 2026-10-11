@@ -44,6 +44,8 @@ dependencies = [
     'tqdm', # imported via conda (conda-forge::tqdm)
     'typing-extensions',
     'wandb', # imported via conda (conda-forge::wandb)
+    # hybrid_rl
+    'hybrid_rl @ git+https://github.com'
 ]
 description = 'Thousand Brains Project Monty'
 dynamic = ['version']
