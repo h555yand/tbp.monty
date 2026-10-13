@@ -44,8 +44,6 @@ dependencies = [
     'tqdm', # imported via conda (conda-forge::tqdm)
     'typing-extensions',
     'wandb', # imported via conda (conda-forge::wandb)
-    # hybrid_rl
-    'hybrid_rl @ git+https://github.com'
 ]
 description = 'Thousand Brains Project Monty'
 dynamic = ['version']
@@ -55,15 +53,15 @@ readme = 'README.md'
 requires-python = '>=3.8'
 
 [project.optional-dependencies]
-simulator_habitat = [
+#simulator_habitat = [
     # HabitatSim is only installable via conda. These dependencies are listed here for
     # documentation and consistency.
     # NOTE: The version constraint is to prevent `uv` from failing trying to check all
     # optional dependency sets are valid. This is because there isn't a version of
     # HabitatSim on PyPI that works for 3.8, and so it tries to solve for a 3.8 environment
     # and fails.
-    'habitat_sim;python_version=="3.9"', # imported via conda (aihabitat::habitat-sim)
-]
+#    'habitat_sim;python_version=="3.9"', # imported via conda (aihabitat::habitat-sim)
+#]
 simulator_mujoco = [
     'mujoco'
 ]
@@ -126,6 +124,10 @@ future_work_widget_tool = [
 print_version_tool = [
     'semver'
 ]
+hybrid_rl = [
+    "hybrid_rl @ git+https://github.com/h555yand/hybrid_rl.git@main",
+    "trimesh",
+]
 
 [project.urls]
 Homepage = 'https://thousandbrainsproject.org'
@@ -142,6 +144,7 @@ known_first_party = [
     'magnum', # transitive dependency bundled with habitat-sim
     'quaternion', # transitive add-on for numpy installed via conda (conda-forge::quaternion)
     'tests',
+    'hybrid_rl',
     'tools'
 ]
 
@@ -328,6 +331,7 @@ where = ["src"]
 'tbp.monty.conf' = ['**/*.yaml']
 # habitat-sim resources
 'tbp.monty.simulators.resources' = ['*.json', '*.yml', '*.txt']
+'tbp.monty.integrations' = ['**/*.yaml']
 
 [tool.uv.extra-build-dependencies]
 torch-scatter = ["setuptools", "torch"]

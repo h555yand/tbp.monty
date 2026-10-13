@@ -1,7 +1,8 @@
 # This file may be used to create an environment using:
 #
 # ## Miniconda or Anaconda
-#     $ conda env create --file environment.yml
+#     # $ conda env create --file environment.yml
+#     $ conda env create -f environment.yml --solver=libmamba
 # If you are using the zsh shell, run:
 #     $ conda init zsh
 # Or, if you are using a different shell, run:
@@ -10,12 +11,12 @@
 # you open a new terminal, run:
 #     $ conda config --set auto_activate_base false
 # Finally, activate the environment with:
-#     $ conda activate tbp.monty
+#     $ conda activate tbp.monty.hybrid_rl
 #
 # platform: default
-name: tbp.monty
+name: tbp.monty.hybrid_rl
 channels:
-  - aihabitat
+  #- aihabitat
   - pytorch
   - pyg
   - conda-forge
@@ -25,16 +26,16 @@ channels:
 dependencies:
   - python=3.9
 
-  - aihabitat::habitat-sim=0.2.2
-  - aihabitat::withbullet
+  #- aihabitat::habitat-sim=0.2.2
+  #- aihabitat::withbullet
   - conda-forge::cmake>=3.14.0
   - conda-forge::importlib_resources
   - conda-forge::matplotlib>=3.7.3
   - conda-forge::mkl<=2024.0.0 # see https://github.com/pytorch/pytorch/issues/123097
-  - conda-forge::numpy<=1.23.5 # numpy >=1.24.0 missing np.long
+  - conda-forge::numpy #<=1.23.5 # numpy >=1.24.0 missing np.long
   - conda-forge::pandas
   - conda-forge::pillow
-  - conda-forge::quaternion=2023.0.3 # later versions missing np.long
+  - conda-forge::quaternion #=2023.0.3 # later versions missing np.long
   - conda-forge::scikit-image
   - conda-forge::scikit-learn=1.3.2
   - conda-forge::scipy>=1.10.1
@@ -58,3 +59,5 @@ dependencies:
       - manifold3d
       - pyrender
       - mujoco==3.3.3
+      # hybrid_rl integration
+      - hybrid_rl @ git+https://github.com/h555yand/hybrid_rl.git@monty
