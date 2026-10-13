@@ -8,6 +8,8 @@
 ![PyPI - Python Version](https://img.shields.io/badge/python-3.8-blue)
 [![](https://github.com/thousandbrainsproject/tbp.monty/actions/workflows/monty.yml/badge.svg)](https://github.com/thousandbrainsproject/tbp.monty/actions/workflows/monty.yml)
 
+This is the fork from tbp.monty that uses [hybrid RL library](https://github.com/h555yand/hybrid_rl) as an external module to focus on benefits of replacing teleportation with realistic navigation using reinforcement learning. 
+
 This repository contains the first implementation of a **sensorimotor learning system** from the **Thousand Brains Project**. We lovingly call it **Monty** after Vernon Mountcastle, who proposed cortical columns as a repeating functional unit across the neocortex.
 
 This is an open-source project that was initially started at Numenta. The Thousand Brains Project is now an independent non-profit, partially funded by the Gates Foundation.
@@ -15,6 +17,8 @@ This is an open-source project that was initially started at Numenta. The Thousa
 Please find our [**full documentation** here](https://docs.thousandbrains.org/)
 
 Our [**API documentation** here](https://api-monty.thousandbrains.org).
+
+
 
 # Getting Started
 
