@@ -31,7 +31,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation as Rot
 from collections import defaultdict
 
-os.environ["MONTY_DATA"] = os.path.expanduser("~/Downloads/tbp/data")
+os.environ["MONTY_DATA"] = os.path.expanduser("~/tbp/data")
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
 from tbp.monty.frameworks.run_env import setup_env

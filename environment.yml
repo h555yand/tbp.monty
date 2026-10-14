@@ -60,4 +60,4 @@ dependencies:
       - pyrender
       - mujoco==3.3.3
       # hybrid_rl integration
-      - --no-deps hybrid_rl @ git+https://github.com/h555yand/hybrid_rl.git@monty
+      - hybrid_rl @ git+https://github.com/h555yand/hybrid_rl.git@monty

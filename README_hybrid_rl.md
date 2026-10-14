@@ -112,11 +112,18 @@ done = recognition_system.check_recognition_complete()
 ## How to setup and run experiment
 
 ### Create environment
+I've changed environment.yml
+- set python=3.9 for mujoco==3.3.3
+- comment aihabitat as a heavy module that I don't use
+- add dependensies for hybrid_rl
+
 conda env create -f environment.yml --solver=libmamba
 conda activate tbp.monty.hybrid_rl
+pip install numpy==1.23.5 
+
 
 ## Choose your favorite YCB MuJoCo objects
-I describe my experience for 2 mujoco objects. You can use it as an example.
+I describe my experience for 2 mujoco objects: cracker_box, master_chef_can. You can use it as an example.
 YCB MuJoCo objects are placed here ~/tbp/mujoco/objects/ycb/
 I used these files: 
 src/tbp/monty/conf/env_interface/tutorial_train_2obj_predefined.yaml
