@@ -32,6 +32,7 @@ from scipy.spatial.transform import Rotation as Rot
 from collections import defaultdict
 
 os.environ["MONTY_DATA"] = os.path.expanduser("~/Downloads/tbp/data")
+os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
 from tbp.monty.frameworks.run_env import setup_env
 setup_env()
@@ -49,8 +50,9 @@ from tbp.monty.integrations.hybrid_rl.mujoco_env_adapter import MuJoCoEnvAdapter
 from tbp.monty.integrations.hybrid_rl.rl_goal_policy import RLGoalPolicy
 from tbp.monty.integrations.hybrid_rl.rl_policy_selector import RLPolicySelector
 
-from hybrid_rl.sac_trainer import PSACTrainer
-from hybrid_rl.experience_extractor import ExperienceExtractor
+from hybrid_rl.envs.surface.sac_trainer import PSACTrainer
+from hybrid_rl.envs.surface.experience_extractor import ExperienceExtractor
+from tbp.monty.integrations.hybrid_rl.model_downloader import ensure_models
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -66,14 +68,9 @@ MONTY_CONF = os.path.join(os.path.dirname(tbp.monty.__file__), "conf")
 PRETRAINED = os.path.expanduser(
     "~/tbp/results/monty/projects/surf_agent_1lm_2obj_train_mujoco_rl/pretrained"
 )
-Q_STORE = os.path.expanduser(
-    "~/Downloads/github/hybrid_RL_prototype/results/adapt-baseline"
-    "/data/runs/q_store_seed_11"
-)
-SAC_DIR = os.path.expanduser(
-    "~/Downloads/github/hybrid_RL_prototype/results/adapt-baseline"
-    "/data/runs/sac_seed_55"
-)
+
+Q_STORE, SAC_DIR = ensure_models()
+
 RESULTS_DIR = Path(os.path.expanduser(
     "~/tbp/results/monty/projects/rl_benchmark"
 )) / datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -125,11 +122,11 @@ RL_CONFIG_BASE = {
     "k_neighbors": 7,
     "max_points": 500000,
     "insert_threshold": 0.50,
-    "action_selection_version": "v2",
     "warmup_episodes": 0,
     "mode": "adaptive",
     "eval_epsilon": 0.02,
     "strategic_eval_epsilon": 0.02,
+    "force_heuristic": True, 
 }
 
 MODES = {
@@ -163,6 +160,12 @@ def setup_rl_motor_system(experiment, observe_every_n_steps):
         enable_online_learning=True,
     )
     rl_policy.set_experiment_ref(experiment)
+
+    # Force heuristic mode if configured
+    if rl_config.get("force_heuristic", False):
+        if rl_policy._manager is not None:
+            rl_policy._manager.arbitrator._force_heuristic = True
+            logger.info("Arbitrator: force_heuristic=True")
 
     # Load SAC
     if os.path.exists(os.path.join(SAC_DIR, "sac_actor.pt")):

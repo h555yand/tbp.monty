@@ -40,16 +40,16 @@ from tbp.monty.frameworks.models.motor_system_state import MotorSystemState
 from tbp.monty.frameworks.sensors import SensorID
 from tbp.monty.memento import Memento
 
-from hybrid_rl.arbitrator import sac_to_discrete
-from hybrid_rl.experience_extractor import ExperienceExtractor
+from hybrid_rl.envs.surface.arbitrator import sac_to_discrete
+from hybrid_rl.envs.surface.experience_extractor import ExperienceExtractor
 from tbp.monty.integrations.hybrid_rl.monty_rl_bridge import MontyRLBridge
-from hybrid_rl.rl_goal_approach_controller import RLGoalApproachController
-from hybrid_rl.lightweight_env import LightweightEnv
-from hybrid_rl.adaptive_manager import AdaptiveTrainingManager
-from hybrid_rl.visualize_env import EpisodeVisualizer
+from hybrid_rl.envs.surface.rl_goal_approach_controller import RLGoalApproachController
+from hybrid_rl.envs.surface.lightweight_env import LightweightEnv
+from hybrid_rl.envs.surface.adaptive_manager import AdaptiveTrainingManager
+from hybrid_rl.envs.surface.visualize_env import EpisodeVisualizer
 
 if TYPE_CHECKING:
-    from hybrid_rl.adaptive_manager import AdaptiveTrainingManager
+    from hybrid_rl.envs.surface.adaptive_manager import AdaptiveTrainingManager
     from tbp.monty.integrations.hybrid_rl.mujoco_env_adapter import MuJoCoEnvAdapter
 
 logger = logging.getLogger(__name__)

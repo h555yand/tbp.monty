@@ -144,3 +144,5 @@ outputs/
 
 # MuJoCo
 MUJOCO_LOG.TXT
+
+src/tbp/monty/integrations/hybrid_rl/models

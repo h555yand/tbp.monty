@@ -35,7 +35,7 @@ import numpy as np
 import trimesh
 from scipy.spatial.transform import Rotation as Rot
 
-from tbp.hybrid_rl.lightweight_env import LightweightEnv
+from hybrid_rl.envs.surface.lightweight_env import LightweightEnv
 
 logger = logging.getLogger(__name__)
 
