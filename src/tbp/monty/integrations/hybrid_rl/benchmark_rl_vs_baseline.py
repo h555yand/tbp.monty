@@ -57,11 +57,11 @@ from tbp.monty.integrations.hybrid_rl.model_downloader import ensure_models
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# python tbp.monty/run.py experiment=tutorial/surf_agent_2obj_train_mujoco
+# python run.py experiment=tutorial/surf_agent_2obj_train_mujoco
 
-# src/tbp/tbp.monty/src/tbp/monty/conf/env_interface/tutorial_train_2obj_predefined.yaml
-# src/tbp/tbp.monty/src/tbp/monty/conf/experiment/tutorial/surf_agent_2obj_train_mujoco.yaml
-# src/tbp/tbp.monty/src/tbp/monty/conf/experiment/tutorial/surf_agent_2obj_eval_mujoco.yaml
+# src/tbp/monty/conf/env_interface/tutorial_train_2obj_predefined.yaml
+# src/tbp/monty/conf/experiment/tutorial/surf_agent_2obj_train_mujoco.yaml
+# src/tbp/monty/conf/experiment/tutorial/surf_agent_2obj_eval_mujoco.yaml
 
 # ═══ Paths ═══
 MONTY_CONF = os.path.join(os.path.dirname(tbp.monty.__file__), "conf")
@@ -84,7 +84,7 @@ EXPERIMENT_OVERRIDES = [
     "experiment=tutorial/surf_agent_2obj_eval_mujoco",
     f"experiment.config.model_name_or_path={PRETRAINED}",
     "experiment.config.show_sensor_output=false",
-    "experiment.config.eval_env_interface_args.object_names=[master_chef_can, cracker_box]",
+    "experiment.config.eval_env_interface_args.object_names=[cracker_box, master_chef_can]", # master_chef_can, cracker_box 
     "experiment.config.n_eval_epochs=3",
     "experiment.config.max_eval_steps=50",
 ]
@@ -130,9 +130,7 @@ RL_CONFIG_BASE = {
 }
 
 MODES = {
-    #"baseline": {"description": "Standard Monty with JumpToGoal"},
-    #"rl_no_de": {"description": "RL Navigation, no directed exploration",
-    #             "observe_every_n_steps": 0},
+    "baseline": {"description": "Standard Monty with JumpToGoal"},
     "rl_de5":   {"description": "RL Navigation + directed exploration every 5 steps",
                  "observe_every_n_steps": 5},
 }

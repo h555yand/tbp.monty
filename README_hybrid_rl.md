@@ -110,10 +110,26 @@ done = recognition_system.check_recognition_complete()
 ```
 ---
 ## How to setup and run experiment
+
 ### Create environment
 conda env create -f environment.yml --solver=libmamba
 conda activate tbp.monty.hybrid_rl
 
+## Choose your favorite YCB MuJoCo objects
+I describe my experience for 2 mujoco objects. You can use it as an example.
+YCB MuJoCo objects are placed here ~/tbp/mujoco/objects/ycb/
+I used these files: 
+src/tbp/monty/conf/env_interface/tutorial_train_2obj_predefined.yaml
+src/tbp/monty/conf/experiment/tutorial/surf_agent_2obj_train_mujoco.yaml
+src/tbp/monty/conf/experiment/tutorial/surf_agent_2obj_eval_mujoco.yaml
+
+### Train Monty model
+python run.py experiment=tutorial/surf_agent_2obj_train_mujoco
+
+### Run benchmark_rl vs teleportation baseline experiment
+python src/tbp/monty/integrations/hybrid_rl/benchmark_rl_vs_baseline.py
+Results will be ~tbp/results/monty/projects/rl_benchmark/20261014_170525/comparison.csv
+20261014_170525 - dynamic folder with date and time of experiment
 
 ---
 
