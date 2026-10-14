@@ -57,7 +57,7 @@ from tbp.monty.integrations.hybrid_rl.model_downloader import ensure_models
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# python src/tbp/tbp.monty/run.py experiment=tutorial/surf_agent_2obj_train_mujoco
+# python tbp.monty/run.py experiment=tutorial/surf_agent_2obj_train_mujoco
 
 # src/tbp/tbp.monty/src/tbp/monty/conf/env_interface/tutorial_train_2obj_predefined.yaml
 # src/tbp/tbp.monty/src/tbp/monty/conf/experiment/tutorial/surf_agent_2obj_train_mujoco.yaml

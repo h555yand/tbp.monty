@@ -6,7 +6,7 @@ train_env_interface_args:
   # If you don't have the YCB dataset, replace with names from habitat (e.g.,
   # "capsule3DSolid", "cubeSolid", etc.).
   object_names:
-  - master_chef_cans
+  - master_chef_can
   - cracker_box
   # Use all predefined object rotations that give good views of the object from 14 angles.
   object_init_sampler:
