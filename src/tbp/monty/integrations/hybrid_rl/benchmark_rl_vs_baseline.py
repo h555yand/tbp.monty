@@ -69,8 +69,6 @@ PRETRAINED = os.path.expanduser(
     "~/tbp/results/monty/projects/surf_agent_1lm_2obj_train_mujoco_rl/pretrained"
 )
 
-Q_STORE, SAC_DIR = ensure_models()
-
 RESULTS_DIR = Path(os.path.expanduser(
     "~/tbp/results/monty/projects/rl_benchmark"
 )) / datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -78,6 +76,8 @@ RESULTS_DIR = Path(os.path.expanduser(
 EVAL_OUTPUT = Path(os.path.expanduser(
     "~/tbp/results/monty/projects/surf_agent_2obj_eval_mujoco"
 ))
+
+Q_STORE, SAC_DIR = ensure_models()
 
 # ═══ Shared experiment config ═══
 EXPERIMENT_OVERRIDES = [
