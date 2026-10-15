@@ -48,6 +48,7 @@ The Thousand Brains Project's **Monty** system recognizes objects by accumulatin
 During RL navigation, Monty's GSG runs on every intermediate observation and may generate new goals. These goals are ignored by the motor system (navigation is in progress), but the GSG logs them as "attempted" and marks them as "not achieved" — creating phantom failures in metrics.
 
 **Solution**: A `navigation_active` flag suppresses goal generation during RL navigation while allowing evidence updates to continue normally.
+Changes here: src/tbp/monty/frameworks/models/goal_generation.py
 
 **Impact**: Eliminated phantom goals (27 → 16 total goals), fixed false "not achieved" entries, resolved a timeout failure caused by wasted matching steps.
 
@@ -87,29 +88,11 @@ With teleportation, the path to a goal is instant. With RL navigation, it takes 
 
 5. **Matching steps comparable**: Only +5.7 additional matching steps, and these are productive — they contribute to evidence accumulation.
 
-### Integration Pattern: Applicable to Any Recognition System
-
-The integration pattern generalizes beyond Monty to any system that:
-- Generates goal locations for a sensor agent (like Monty's GSG)
-- Accumulates evidence from observations (like Monty's Evidence LM)
-- Benefits from intermediate observations during navigation
-
-**Required interface from the recognition system:**
-```python
-# Goal generation
-goal = recognition_system.get_next_goal()  # → location + orientation
-
-# Observation processing
-recognition_system.process_observation(pose, features)
-
-# Goal suppression during navigation
-recognition_system.suppress_goal_generation(active: bool)
-
-# Terminal check
-done = recognition_system.check_recognition_complete()
-```
 ---
 ## How to setup and run experiment
+
+
+src/tbp/monty/frameworks/experiments/object_recognition_experiments.py
 
 ### Create environment
 I've changed environment.yml
@@ -124,7 +107,7 @@ pip install numpy==1.23.5
 
 ## Choose your favorite YCB MuJoCo objects
 I describe my experience for 2 mujoco objects: cracker_box, master_chef_can. You can use it as an example.
-YCB MuJoCo objects are placed here ~/tbp/mujoco/objects/ycb/
+YCB MuJoCo objects are placed here ~/tbp/data/mujoco/objects/ycb
 I used these files: 
 src/tbp/monty/conf/env_interface/tutorial_train_2obj_predefined.yaml
 src/tbp/monty/conf/experiment/tutorial/surf_agent_2obj_train_mujoco.yaml
@@ -134,9 +117,25 @@ src/tbp/monty/conf/experiment/tutorial/surf_agent_2obj_eval_mujoco.yaml
 python run.py experiment=tutorial/surf_agent_2obj_train_mujoco
 
 ### Run benchmark_rl vs teleportation baseline experiment
+MODES = {
+    "baseline": {"description": "Standard Monty with JumpToGoal"},
+    "rl_de5":   {"description": "RL Navigation + directed exploration every 5 steps",
+                 "observe_every_n_steps": 5},
+}
+
 python src/tbp/monty/integrations/hybrid_rl/benchmark_rl_vs_baseline.py
-Results will be ~tbp/results/monty/projects/rl_benchmark/20261014_170525/comparison.csv
+
+Results will be 
+- ~tbp/results/monty/projects/rl_benchmark/20261014_170525/comparison.csv
 20261014_170525 - dynamic folder with date and time of experiment
+Сomparison of baseline vs rl_de5 similar to described above
+- ~tbp/results/monty/projects/monty_integration_logs
+Detailed logs with pictures of RL navigations
+
+### Known issue: MuJoCo qhull intermittent error
+You may see "qhull internal error (qh_maxsimplex)" when loading certain YCB meshes (e.g. master_chef_can). This is a non-deterministic MuJoCo/qhull issue related to process memory state.
+Fix: close and reopen your terminal (or VSCode), then re-run.
+The error typically resolves on the next attempt.
 
 ---
 

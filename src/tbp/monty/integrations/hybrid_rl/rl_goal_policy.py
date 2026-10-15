@@ -25,6 +25,7 @@ import numpy as np
 import quaternion as qt
 from scipy.spatial.transform import Rotation as Rot
 import os
+import shutil
 
 from tbp.monty.cmp import Goal, Message
 from tbp.monty.context import RuntimeContext
@@ -70,6 +71,7 @@ class RLGoalPolicy(MotorPolicy):
         mesh_path: Optional[str] = None,
         max_nav_steps: int = 200,
         enable_online_learning: bool = True,
+        log_dir: Path = None,
     ):
         self._agent_id = agent_id
         self._sensor_id = sensor_id
@@ -91,7 +93,10 @@ class RLGoalPolicy(MotorPolicy):
         self._stuck_counter: int = 0
 
         # Logging
-        self._log_dir = Path(model_path).parent / "monty_integration_logs"
+        self._log_dir = log_dir / "monty_integration_logs"
+        # Очищаем директорию, если она существует
+        if self._log_dir.exists() and self._log_dir.is_dir():
+            shutil.rmtree(self._log_dir)
         self._log_dir.mkdir(parents=True, exist_ok=True)
         self._episode_log: list[dict] = []
         # Adapt checkpoint (online learning, never overwrites base models)
@@ -186,7 +191,7 @@ class RLGoalPolicy(MotorPolicy):
                 stage="monty_integration",
                 max_per_type_per_level=10,
                 num_levels=3,
-                visualize_mode="pictures",
+                visualize_mode="video",
             )
         except Exception:
             pass

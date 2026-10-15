@@ -35,7 +35,12 @@ import numpy as np
 import trimesh
 from scipy.spatial.transform import Rotation as Rot
 
+import mujoco
+from mujoco import mj_forward
+from PIL import Image as _Image, ImageDraw as _ImageDraw, ImageFont as _ImageFont
+
 from hybrid_rl.envs.surface.lightweight_env import LightweightEnv
+from hybrid_rl.envs.surface.visualize_env import add_text_overlay
 
 logger = logging.getLogger(__name__)
 
@@ -2149,14 +2154,9 @@ class MuJoCoEnvAdapter:
         result: str = "",
     ) -> None:
         """Render split-view frame: MuJoCo solid + MuJoCo x-ray."""
-        import mujoco
-        from mujoco import mj_forward
-        from PIL import Image as _Image, ImageDraw as _ImageDraw, ImageFont as _ImageFont
-        from pathlib import Path as _Path
-        from .visualize_env import add_text_overlay
 
         mj_forward(self._sim.model, self._sim.data)
-        _Path(filepath).parent.mkdir(parents=True, exist_ok=True)
+        Path(filepath).parent.mkdir(parents=True, exist_ok=True)
 
         # Render at framebuffer size
         fb_w = self._sim.model.vis.global_.offwidth

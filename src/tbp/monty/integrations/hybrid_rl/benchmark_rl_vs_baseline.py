@@ -57,12 +57,6 @@ from tbp.monty.integrations.hybrid_rl.model_downloader import load_best_models
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# python run.py experiment=tutorial/surf_agent_2obj_train_mujoco
-
-# src/tbp/monty/conf/env_interface/tutorial_train_2obj_predefined.yaml
-# src/tbp/monty/conf/experiment/tutorial/surf_agent_2obj_train_mujoco.yaml
-# src/tbp/monty/conf/experiment/tutorial/surf_agent_2obj_eval_mujoco.yaml
-
 # ═══ Paths ═══
 MONTY_CONF = os.path.join(os.path.dirname(tbp.monty.__file__), "conf")
 PRETRAINED = os.path.expanduser(
@@ -75,6 +69,10 @@ RESULTS_DIR = Path(os.path.expanduser(
 
 EVAL_OUTPUT = Path(os.path.expanduser(
     "~/tbp/results/monty/projects/surf_agent_2obj_eval_mujoco"
+))
+
+LOG_DIR = Path(os.path.expanduser(
+    "~/tbp/results/monty/projects"
 ))
 
 Q_STORE, SAC_DIR, ADAPT_Q_DIR, ADAPT_SAC_DIR = load_best_models()
@@ -133,7 +131,7 @@ RL_CONFIG_BASE = {
 }
 
 MODES = {
-    #"baseline": {"description": "Standard Monty with JumpToGoal"},
+    "baseline": {"description": "Standard Monty with JumpToGoal"},
     "rl_de5":   {"description": "RL Navigation + directed exploration every 5 steps",
                  "observe_every_n_steps": 5},
 }
@@ -159,6 +157,7 @@ def setup_rl_motor_system(experiment, observe_every_n_steps):
         mesh_path=None,
         max_nav_steps=500,
         enable_online_learning=True,
+        log_dir=LOG_DIR
     )
     rl_policy.set_experiment_ref(experiment)
 

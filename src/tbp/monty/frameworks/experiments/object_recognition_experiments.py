@@ -34,75 +34,6 @@ class MontyObjectRecognitionExperiment(MontyExperiment):
     RGBA sensor and an up-close "patch" depth sensor.
     """
 
-    def run_episode_steps(self) -> int:
-        step = 0
-        ctx = RuntimeContext(rng=self.rng)
-        actions: list[Action] = []
-        stop_requested: bool = False
-        while True:
-            observations, proprioceptive_state = self.env_interface.step(actions)
-
-            self._fixme_generate_live_plot_frame(observations, step)
-
-            if self.model.check_reached_max_matching_steps(self.max_steps):
-                logger.info(
-                    f"Terminated due to maximum matching steps : {self.max_steps}"
-                )
-                break
-
-            if step >= (self.max_total_steps):
-                logger.info(f"Terminated due to maximum episode steps : {step}")
-                self.model.deal_with_time_out()
-                break
-
-            # ═══ DEBUG: log step routing and agent position ═══
-            is_motor_only = self.model.is_motor_only_step
-            matching = self.model.matching_steps
-            episode = self.model.episode_steps
-            
-            # Get agent position from proprioceptive state
-            agent_pos = None
-            for aid, astate in proprioceptive_state.items():
-                agent_pos = astate.position
-                break
-            
-            logger.info(
-                "STEP_DEBUG step=%d motor_only=%s matching_steps=%d "
-                "episode_steps=%d agent_pos=%s actions_in=%d",
-                step, is_motor_only, matching, episode,
-                [round(x, 4) for x in agent_pos] if agent_pos else None,
-                len(actions),
-            )
-            # ═══ END DEBUG ═══
-
-            try:
-                if self.model.is_motor_only_step:
-                    logger.debug("Performing a motor-only step")
-                    actions = self.model.motor_only_step(
-                        ctx, observations, proprioceptive_state
-                    )
-                else:
-                    actions = self.model.step(ctx, observations, proprioceptive_state)
-                    actions = self._step_hook(
-                        ctx,
-                        self.model,
-                        self.supervised_lm_ids if self.supervised_lm_ids else [],
-                        step,
-                        observations,
-                        actions,
-                    )
-            except StopIteration:
-                stop_requested = True
-
-            stop_requested = stop_requested or self._recognition_complete(step)
-
-            if stop_requested:
-                self.model.set_done()
-                break
-            step += 1
-
-        return step
-
     def pre_episode(self) -> None:
         super().pre_episode()
 
@@ -116,7 +47,7 @@ class MontyObjectRecognitionExperiment(MontyExperiment):
         else:
             self.model.fixme_set_ground_truth(self.env_interface.primary_target)
 
-    def run_episode_steps_old(self) -> int:
+    def run_episode_steps(self) -> int:
         step = 0
         ctx = RuntimeContext(rng=self.rng)
         actions: list[Action] = []
