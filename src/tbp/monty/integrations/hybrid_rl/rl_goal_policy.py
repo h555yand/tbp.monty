@@ -24,6 +24,7 @@ from typing import TYPE_CHECKING, Any, Dict, Optional
 import numpy as np
 import quaternion as qt
 from scipy.spatial.transform import Rotation as Rot
+import os
 
 from tbp.monty.cmp import Goal, Message
 from tbp.monty.context import RuntimeContext
@@ -47,6 +48,8 @@ from hybrid_rl.envs.surface.rl_goal_approach_controller import RLGoalApproachCon
 from hybrid_rl.envs.surface.lightweight_env import LightweightEnv
 from hybrid_rl.envs.surface.adaptive_manager import AdaptiveTrainingManager
 from hybrid_rl.envs.surface.visualize_env import EpisodeVisualizer
+from hybrid_rl.envs.surface.sac_trainer import PSACTrainer
+from hybrid_rl.envs.surface.experience_extractor import ExperienceExtractor
 
 if TYPE_CHECKING:
     from hybrid_rl.envs.surface.adaptive_manager import AdaptiveTrainingManager
@@ -73,43 +76,6 @@ class RLGoalPolicy(MotorPolicy):
         self._max_nav_steps = max_nav_steps
         self._enable_learning = enable_online_learning
 
-        self._observe_every_n_steps: int = rl_config.get("observe_every_n_steps", 0)
-        # 0 = only final observation (Phase 1 behavior)
-        # 1 = every step (full directed exploration, slowest)
-        # 5 = every 5th step (balanced)
-        # 10 = every 10th step (fast)
-
-        self._bridge = MontyRLBridge(agent_id, rl_config, mujoco_adapter)
-
-        self._controller = RLGoalApproachController.load(
-            model_path,
-            agent_id=str(agent_id),
-            config={**rl_config, "mode": "adaptive"},
-        )
-        self._controller.mode = "adaptive"
-
-        self._manager: Optional[AdaptiveTrainingManager] = None
-        if enable_online_learning:
-
-            if mesh_path:
-                trimesh_env = LightweightEnv(mesh_path)
-            else:
-                trimesh_env = None
-
-            self._manager = AdaptiveTrainingManager(
-                controller=self._controller,
-                env=trimesh_env,
-                config=rl_config,
-                runs_dir=str(Path(model_path).parent),
-                mesh_path=mesh_path,
-            )
-
-            if not mesh_path:
-                logger.info(
-                    "AdaptiveManager: inference-only mode "
-                    "(no mesh -> no offline retrain, SAC inference OK)"
-                )
-
         self._nav_active: bool = False
         self._nav_steps: int = 0
         self._current_goal: Optional[Goal] = None
@@ -128,6 +94,12 @@ class RLGoalPolicy(MotorPolicy):
         self._log_dir = Path(model_path).parent / "monty_integration_logs"
         self._log_dir.mkdir(parents=True, exist_ok=True)
         self._episode_log: list[dict] = []
+        # Adapt checkpoint (online learning, never overwrites base models)
+        self._save_every_n_episodes: int = rl_config.get(
+            "save_every_n_episodes", 50
+        )
+        self._adapt_q_dir = rl_config.get("adapt_q_dir", "")
+        self._adapt_sac_dir = rl_config.get("adapt_sac_dir", "")
         self._total_nav_episodes: int = 0
         self._current_poses: list = []
         self._action_explanations: list[str] = []
@@ -136,6 +108,74 @@ class RLGoalPolicy(MotorPolicy):
         self._monty_start_pos_mm: Optional[np.ndarray] = None
         self._current_object_name: str = "unknown"
         self._experiment_ref = None
+
+        self._observe_every_n_steps: int = rl_config.get("observe_every_n_steps", 0)
+        # 0 = only final observation (Phase 1 behavior)
+        # 1 = every step (full directed exploration, slowest)
+        # 5 = every 5th step (balanced)
+        # 10 = every 10th step (fast)
+
+        self._bridge = MontyRLBridge(agent_id, rl_config, mujoco_adapter)
+
+        # Priority: adapt checkpoint > base model
+        adapt_config = {**rl_config, "mode": "adaptive"}
+        if os.path.exists(os.path.join(self._adapt_q_dir, "config.json")):
+            logger.info(
+                "Loading adapt Q-store from %s", self._adapt_q_dir
+            )
+            self._controller = RLGoalApproachController.load(
+                self._adapt_q_dir,
+                agent_id=str(agent_id),
+                config=adapt_config,
+            )
+        else:
+            logger.info(
+                "No adapt checkpoint, loading base from %s", model_path
+            )
+            self._controller = RLGoalApproachController.load(
+                model_path,
+                agent_id=str(agent_id),
+                config=adapt_config,
+            )
+        self._controller.mode = "adaptive"
+
+        self._manager: Optional[AdaptiveTrainingManager] = None
+        if enable_online_learning:
+
+            if mesh_path:
+                trimesh_env = LightweightEnv(mesh_path)
+            else:
+                trimesh_env = None
+
+            self._manager = AdaptiveTrainingManager(
+                controller=self._controller,
+                env=trimesh_env,
+                config=rl_config,
+                runs_dir=str(Path(model_path).parent),
+                mesh_path=mesh_path,
+            )
+
+            # Load adapt SAC if available
+            adapt_sac_actor = os.path.join(
+                self._adapt_sac_dir, "sac_actor.pt"
+            )
+            if os.path.exists(adapt_sac_actor):
+                num_types = len(ExperienceExtractor.get_type_names())
+                sac_trainer = PSACTrainer(
+                    state_dim=rl_config["state_dim"],
+                    num_types=num_types,
+                )
+                sac_trainer.load(self._adapt_sac_dir)
+                self._manager.sac_trainer = sac_trainer
+                logger.info(
+                    "Loaded adapt SAC from %s", self._adapt_sac_dir
+                )
+
+            if not mesh_path:
+                logger.info(
+                    "AdaptiveManager: inference-only mode "
+                    "(no mesh -> no offline retrain, SAC inference OK)"
+                )
 
         # Visualizer
         self._visualizer = None
@@ -669,8 +709,25 @@ class RLGoalPolicy(MotorPolicy):
         self._prev_goals_reached = current_goals
 
         if self._manager:
-            self._manager.on_episode_complete(success=success, transitions=[])
+            transitions = self._controller._episode_transitions.copy()
+            self._manager.on_episode_complete(
+                success=success, transitions=transitions,
+            )
             self._manager.arbitrator.on_episode_end(success)
+
+            # Periodic checkpoint (adapt dir, never overwrites base)
+            if (
+                self._enable_learning
+                and self._save_every_n_episodes > 0
+                and self._total_nav_episodes % self._save_every_n_episodes == 0
+            ):
+                self._controller.save(self._adapt_q_dir)
+                if self._manager.sac_trainer is not None:
+                    self._manager.sac_trainer.save(self._adapt_sac_dir)
+                logger.info(
+                    "Adapt checkpoint saved at episode %d → %s",
+                    self._total_nav_episodes, self._adapt_q_dir,
+                )
 
         # Compute final distance
         rl_goal = (

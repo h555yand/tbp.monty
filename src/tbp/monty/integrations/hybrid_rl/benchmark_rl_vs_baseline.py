@@ -52,7 +52,7 @@ from tbp.monty.integrations.hybrid_rl.rl_policy_selector import RLPolicySelector
 
 from hybrid_rl.envs.surface.sac_trainer import PSACTrainer
 from hybrid_rl.envs.surface.experience_extractor import ExperienceExtractor
-from tbp.monty.integrations.hybrid_rl.model_downloader import ensure_models
+from tbp.monty.integrations.hybrid_rl.model_downloader import load_best_models
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -77,7 +77,7 @@ EVAL_OUTPUT = Path(os.path.expanduser(
     "~/tbp/results/monty/projects/surf_agent_2obj_eval_mujoco"
 ))
 
-Q_STORE, SAC_DIR = ensure_models()
+Q_STORE, SAC_DIR, ADAPT_Q_DIR, ADAPT_SAC_DIR = load_best_models()
 
 # ═══ Shared experiment config ═══
 EXPERIMENT_OVERRIDES = [
@@ -127,10 +127,13 @@ RL_CONFIG_BASE = {
     "eval_epsilon": 0.02,
     "strategic_eval_epsilon": 0.02,
     "force_heuristic": True, 
+    "save_every_n_episodes": 50,
+    "adapt_q_dir": ADAPT_Q_DIR,
+    "adapt_sac_dir": ADAPT_SAC_DIR,
 }
 
 MODES = {
-    "baseline": {"description": "Standard Monty with JumpToGoal"},
+    #"baseline": {"description": "Standard Monty with JumpToGoal"},
     "rl_de5":   {"description": "RL Navigation + directed exploration every 5 steps",
                  "observe_every_n_steps": 5},
 }
