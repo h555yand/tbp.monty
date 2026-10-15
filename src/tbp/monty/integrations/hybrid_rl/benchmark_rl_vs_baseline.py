@@ -132,7 +132,7 @@ RL_CONFIG_BASE = {
 
 MODES = {
     "baseline": {"description": "Standard Monty with JumpToGoal"},
-    "rl_de5":   {"description": "RL Navigation + directed exploration every 5 steps",
+    "rl_de5":   {"description": "RL Navigation + directed exploration",
                  "observe_every_n_steps": 5},
 }
 

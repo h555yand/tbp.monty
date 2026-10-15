@@ -1,6 +1,6 @@
 ### This is the fork from original tbp.monty that uses [hybrid RL library](https://github.com/h555yand/hybrid_rl/tree/monty) as an external module to focus on benefits of replacing teleportation with realistic navigation using reinforcement learning. 
 
-## Introduction and current results
+## 1. Introduction and current results
 ### Background
 
 The Thousand Brains Project's **Monty** system recognizes objects by accumulating evidence for hypotheses (object identity × pose) as a sensor agent explores object surfaces. The standard approach uses **teleportation** (`JumpToGoalState`) to instantly move the agent to target points selected by the Goal State Generator (GSG). We replaced teleportation with our RL surface navigation system, preserving Monty's recognition pipeline while adding biologically plausible movement.
@@ -89,98 +89,115 @@ With teleportation, the path to a goal is instant. With RL navigation, it takes 
 5. **Matching steps comparable**: Only +5.7 additional matching steps, and these are productive — they contribute to evidence accumulation.
 
 ---
-## How to setup and run experiment
+## 2. How to setup and run experiment
 
-
-src/tbp/monty/frameworks/experiments/object_recognition_experiments.py
-
-### Create environment
-I've changed environment.yml
+### 2.1 Create environment
+Changes in environment.yml:
 - set python=3.9 for mujoco==3.3.3
 - comment aihabitat as a heavy module that I don't use
+- add hybrid_rl module
 - add dependensies for hybrid_rl
 
+```
 conda env create -f environment.yml --solver=libmamba
 conda activate tbp.monty.hybrid_rl
 pip install numpy==1.23.5 
+```
 
-
-## Choose your favorite YCB MuJoCo objects
+### 2.2 Choose your favorite YCB MuJoCo objects
 I describe my experience for 2 mujoco objects: cracker_box, master_chef_can. You can use it as an example.
 YCB MuJoCo objects are placed here ~/tbp/data/mujoco/objects/ycb
 I used these files: 
+```
 src/tbp/monty/conf/env_interface/tutorial_train_2obj_predefined.yaml
 src/tbp/monty/conf/experiment/tutorial/surf_agent_2obj_train_mujoco.yaml
 src/tbp/monty/conf/experiment/tutorial/surf_agent_2obj_eval_mujoco.yaml
+```
 
-### Train Monty model
+### 2.3 Train Monty model
+```
 python run.py experiment=tutorial/surf_agent_2obj_train_mujoco
+```
 
-### Run benchmark_rl vs teleportation baseline experiment
+### 2.4 Run benchmark_rl vs teleportation baseline experiment
+
+hybrid_rl setup:
+- Q-store, SAC models are downloaded at the first run. Current Q-store, SAC models are not final and in active development
+- for stable baseline level navigation hueristics are used by default ("force_heuristic": True,) 
+
+There are two modes to compare:
 MODES = {
     "baseline": {"description": "Standard Monty with JumpToGoal"},
-    "rl_de5":   {"description": "RL Navigation + directed exploration every 5 steps",
-                 "observe_every_n_steps": 5},
+    "rl_de5":   {"description": "RL Navigation + directed exploration"},
 }
 
+```
 python src/tbp/monty/integrations/hybrid_rl/benchmark_rl_vs_baseline.py
+```
 
-Results will be 
+### 2.5 Results will be 
 - ~tbp/results/monty/projects/rl_benchmark/20261014_170525/comparison.csv
-20261014_170525 - dynamic folder with date and time of experiment
+20261014_170525 - dynamic folder with date and time of experiment  
 Сomparison of baseline vs rl_de5 similar to described above
-- ~tbp/results/monty/projects/monty_integration_logs
+- ~tbp/results/monty/projects/monty_integration_logs  
 Detailed logs with pictures of RL navigations
 
-### Known issue: MuJoCo qhull intermittent error
+### 2.6 Known issue: MuJoCo qhull intermittent error
 You may see "qhull internal error (qh_maxsimplex)" when loading certain YCB meshes (e.g. master_chef_can). This is a non-deterministic MuJoCo/qhull issue related to process memory state.
 Fix: close and reopen your terminal (or VSCode), then re-run.
 The error typically resolves on the next attempt.
 
 ---
 
-## 15. Future Directions
+## 3. Known Limitations
 
-### 15.1 Coverage-Driven Training with RL Navigation
+### 3.1 Edge Traversal
+The surface snap mechanism struggles at sharp edges (mug rims, wavy ribs on the master_chef_can, raised letters on the cracker_box). This is an environment-level problem — even a perfect policy cannot crawl over an edge if the physics engine cannot execute the move. Primary cause of L2 failures on hollow objects.
+#### How to fix: 
+- Improve crawling functions in mujoco_env_adapter.py: _snap_to_surface, _do_move_tangentially
 
-**Problem**: Current object model building (in systems like Monty) uses random surface crawling — 14,000 steps per object with uneven coverage.
+### 3.2 Hollow Object Navigation
+The agent doesn't always understand it needs to crawl to the rim rather than toward the goal. When the goal is inside a mug and the agent is outside, the correct strategy is: crawl to rim → cross → descend inside. Q-store may override this with "crawl toward goal" learned from simple objects.
+#### How to fix: 
+- Improve heuristics, rewrds in hybrid_rl module
 
-**Proposed**: Replace random crawling with goal-directed exploration using the same RL navigation system. A `CoverageGoalGenerator` analyzes the growing object model and directs the agent to unexplored areas.
+### 3.3 Air Navigation Stability
+Without surface snap, positioning errors accumulate in air. The flyby correction heuristic is reactive rather than preventive. Landing approach lacks fine depth control.
+#### How to fix: 
+- Improve heuristics, rewards in hybrid_rl module
 
+### 3.4 Sim-to-Sim Transfer Gap
+14–24% performance gap between Trimesh and MuJoCo, primarily from differences in surface normal estimation, collision detection, and snap mechanics.
+#### How to fix: 
+- Improve specific functions in mujoco_env_adapter.py
+
+
+## 4. Future Directions
+
+### 4.1 Coverage-Driven Training with RL Navigation
+Current Monty object model building uses random surface crawling — many steps per object with uneven coverage.
+Replace random crawling with goal-directed exploration using the same RL navigation system that analyzes the growing object model and directs the agent to unexplored areas.
 Three-level goal generation:
 - **Level 1** (< 10 points): Direction-based — move along surface to build initial cluster
 - **Level 2** (10–200 points): Frontier-based — push beyond the boundary of explored area
 - **Level 3** (> 200 points): Gap-based — voxelize explored space, target largest uncovered regions
 
-**Expected benefit**: ~300 steps per object (vs 14,000) with uniform coverage.
 
-### 15.2 Model-Based Navigation Using Learned Object Models
-
+### 4.2 Model-Based Navigation Using Learned Object Models
 Once a recognition system has a confident hypothesis about object identity, use the learned object model as a **world model** for navigation planning:
-
 - Graph-based path planning along known surface topology
 - Waypoint navigation with predicted edge transitions
 - Confidence-gated: fall back to model-free when uncertain
 
-### 15.3 Online Model Enrichment
-
+### 4.3 Online Model Enrichment
 During deployment, add high-quality observations to the object model in real-time. Each recognition episode makes future recognition faster — a self-improving system.
 
-### 15.4 Real Robot Deployment
-
+### 4.4 Real Robot Deployment
 The architecture is designed for this transition:
-
-```
-Day 1:   Load trimesh-trained policy → basic navigation works (~80%+ at L0)
-Days 1-N: Online Q-learning and SAC adapt to real sensor noise and physics
+- Load trimesh-trained policy → basic navigation works (~80%+ at L0)
+- Online Q-learning and SAC adapt to real sensor noise and physics
 When needed: Offline retrain in fast trimesh simulation
 Convergence: Arbitrator learns real-world source reliability
-```
-
-The `RobotEnvAdapter` implements the same `RLEnvironment` protocol:
-- `get_pose()` from robot kinematics / SLAM
-- `get_sensor_data()` from depth camera via point cloud processing
-- `step_continuous()` maps to motor commands via inverse kinematics
 
 
 
