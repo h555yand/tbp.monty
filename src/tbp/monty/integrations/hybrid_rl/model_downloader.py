@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 MODELS_URL = (
     "https://github.com/h555yand/hybrid_rl/releases/"
-    "download/v0.1.0/models_v0.1.0.zip"
+    "download/v0.2.0/models_v0.2.0.zip"
 )
 
 DEFAULT_MODELS_DIR = Path(__file__).parent / "models"

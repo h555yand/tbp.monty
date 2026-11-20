@@ -480,7 +480,7 @@ class RLGoalPolicy(MotorPolicy):
             debug_info = self._controller.get_state_debug_info(
                 rl_state, current_pose_mm, sensor_data,
             )
-            action_type, action_params, source = self._manager.get_action(
+            action_type, action_params, source, q_values, confidence_info = self._manager.get_action(
                 rl_state, current_pose_mm, sensor_data,
             )
             action_idx = sac_to_discrete(action_type, action_params)
@@ -510,7 +510,7 @@ class RLGoalPolicy(MotorPolicy):
 
             if self._enable_learning:
                 post_pose_mm = self._bridge._adapter.get_pose()
-                _, done = self._controller.update_only(
+                _, done, td_debug = self._controller.update_only(
                     post_pose_mm, post_sensor_data, action_idx,
                 )
                 if done:

@@ -92,7 +92,7 @@ With teleportation, the path to a goal is instant. With RL navigation, it takes 
 ## 2. How to setup and run experiment
 
 ### 2.1 Create environment
-Changes in environment.yml:
+#### Changes in environment.yml:
 - set python=3.9 for mujoco==3.3.3
 - comment aihabitat as a heavy module that I don't use
 - add hybrid_rl module
@@ -102,7 +102,13 @@ Changes in environment.yml:
 conda env create -f environment.yml --solver=libmamba
 conda activate tbp.monty.hybrid_rl
 pip install numpy==1.23.5 
+
 ```
+
+#### To update only hybrid_rl
+conda activate tbp.monty.hybrid_rl
+pip install --upgrade --force-reinstall --no-deps "hybrid_rl @ git+https://github.com/h555yand/hybrid_rl.git@monty"
+
 
 ### 2.2 Choose your favorite YCB MuJoCo objects
 I describe my experience for 2 mujoco objects: cracker_box, master_chef_can. You can use it as an example.
