@@ -125,7 +125,7 @@ RL_CONFIG_BASE = {
     "eval_epsilon": 0.02,
     "strategic_eval_epsilon": 0.02,
     "force_heuristic": True, 
-    "save_every_n_episodes": 50,
+    "save_every_n_episodes": 10,
     "adapt_q_dir": ADAPT_Q_DIR,
     "adapt_sac_dir": ADAPT_SAC_DIR,
 }
